@@ -2,36 +2,35 @@ name: CI Frontend
 
 on:
   push:
+    tags: ['v*.*.*']
     branches: [main]
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
-
     steps:
       - uses: actions/checkout@v5
 
-      - name: Configurer le Node.js 22
+      - name: Configurer le Node.js 24
         uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version: 24
+          cache: npm
 
       - name: Installer les dependances
         run: npm ci
 
       - name: Build
         run: npm run build
-
-      - name: archive build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: TP4
-          path: frontend/dist/
 
   push-image:
     needs: build
@@ -61,7 +60,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ env.OWNER_LC }}/=tp4_main_backend
+          images: ghcr.io/${{ env.OWNER_LC }}/tp4_main_frontend
           tags: |
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
             type=sha,format=long,prefix=
@@ -75,4 +74,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VITE_API_URL=${{ vars.VITE_API_URL }}
           cache-from: type=gha
+          cache-to: type=gha,mode=max
