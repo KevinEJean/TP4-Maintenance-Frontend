@@ -1,5 +1,7 @@
 # incidents-labo-api — Frontend
 
+![Build](https://github.com/KevinEJean/TP4-Maintenance-Frontend/actions/workflows/pipeline-ci.yml/badge.svg)
+
 Interface React (Vite) permettant de consulter les locaux et postes, signaler des incidents et suivre
 leur résolution. Elle consomme l'API REST du dossier `backend/` (aucune donnée simulée/mockée).
 
